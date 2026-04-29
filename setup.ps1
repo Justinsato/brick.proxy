@@ -75,22 +75,42 @@ try {
 }
 
 # ---------------------------------------------------------------------------
-# 2. Clone or pull OCP
+# 2. Clone or pull OCP — with explicit checks (external commands like `git`
+# don't trip $ErrorActionPreference; we have to inspect $LASTEXITCODE ourselves
+# and verify the dir actually appeared).
 # ---------------------------------------------------------------------------
 Write-Step "Setting up $OcpDir"
+
+# Verify git is on PATH before we try to use it
+$gitVer = & git --version 2>$null
+if ($LASTEXITCODE -ne 0 -or -not $gitVer) {
+    Write-Host "    [FAIL] git is not installed or not on PATH." -ForegroundColor Red
+    Write-Host "           Install: winget install --id Git.Git -e" -ForegroundColor Red
+    Write-Host "           Then close + reopen PowerShell (PATH refresh) and re-run." -ForegroundColor Red
+    exit 1
+}
+Write-OK "git: $gitVer"
+
 if (Test-Path $OcpDir) {
     Write-OK "Directory exists — pulling latest"
     Push-Location $OcpDir
     try {
-        git pull --ff-only
-    } catch {
-        Write-Warn "git pull failed (working tree may have local changes); continuing with current checkout"
+        & git pull --ff-only
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warn "git pull exit code $LASTEXITCODE (working tree may have local changes); continuing with current checkout"
+        }
     } finally {
         Pop-Location
     }
 } else {
     Write-Host "    Cloning $RepoUrl"
-    git clone $RepoUrl $OcpDir
+    & git clone $RepoUrl $OcpDir
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $OcpDir)) {
+        Write-Host "    [FAIL] git clone failed (exit $LASTEXITCODE) and/or $OcpDir was not created." -ForegroundColor Red
+        Write-Host "           Manual debug: git clone $RepoUrl $OcpDir" -ForegroundColor Red
+        Write-Host "           Common causes: no internet, github auth prompt blocked, antivirus blocking write." -ForegroundColor Red
+        exit 1
+    }
     Write-OK "Cloned"
 }
 
