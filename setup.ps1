@@ -4,6 +4,8 @@
 #   powershell -ExecutionPolicy Bypass -File .\setup.ps1
 #
 # Idempotent: re-running is safe. It will:
+#   0. Clean up any leftover C:\Users\justin\ paths from the broken initial
+#      docs (this script's prior version had the wrong username hardcoded).
 #   1. Verify Docker Desktop is running.
 #   2. Clone (or pull) https://github.com/dtzp555-max/ocp into $env:USERPROFILE\ocp.
 #   3. docker compose up -d.
@@ -26,6 +28,26 @@ function Write-OK($msg) {
 
 function Write-Warn($msg) {
     Write-Host "    [WARN] $msg" -ForegroundColor Yellow
+}
+
+# ---------------------------------------------------------------------------
+# 0. Clean up the wrong-username leftover folder, if any.
+# ---------------------------------------------------------------------------
+# Earlier versions of these docs hardcoded C:\Users\justin\ instead of
+# $env:USERPROFILE. If the user ran the broken version they have a stray
+# C:\Users\justin\ tree. Remove it (only if it's not the actual user profile,
+# which would be the case only if the username really is "justin").
+$WrongDir = "C:\Users\justin"
+if ((Test-Path $WrongDir) -and ($env:USERNAME -ne "justin")) {
+    Write-Step "Cleaning up stray $WrongDir from broken initial docs"
+    try {
+        Remove-Item -Path $WrongDir -Recurse -Force -ErrorAction Stop
+        Write-OK "Removed $WrongDir"
+    } catch {
+        Write-Warn "Could not remove $WrongDir (close any open file handles, then: Remove-Item -Path '$WrongDir' -Recurse -Force)"
+    }
+} else {
+    Write-OK "No stray C:\Users\justin\ to clean (already gone, or you actually are user 'justin')"
 }
 
 # ---------------------------------------------------------------------------
