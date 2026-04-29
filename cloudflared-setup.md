@@ -45,7 +45,7 @@ cloudflared tunnel create brick-ocp
 Output looks like:
 
 ```
-Tunnel credentials written to C:\Users\justin\.cloudflared\<UUID>.json.
+Tunnel credentials written to C:\Users\justinsato\.cloudflared\<UUID>.json.
 Created tunnel brick-ocp with id <UUID>
 ```
 
@@ -79,7 +79,7 @@ Create `$env:USERPROFILE\.cloudflared\config.yml`. Replace `<UUID>` with the val
 
 ```yaml
 tunnel: <UUID>
-credentials-file: C:\Users\justin\.cloudflared\<UUID>.json
+credentials-file: C:\Users\justinsato\.cloudflared\<UUID>.json
 
 ingress:
   - hostname: ocp.lfiq.app
@@ -95,7 +95,7 @@ You can write it directly from PowerShell if you'd like (substitute `<UUID>`):
 ```powershell
 @"
 tunnel: <UUID>
-credentials-file: C:\Users\justin\.cloudflared\<UUID>.json
+credentials-file: C:\Users\justinsato\.cloudflared\<UUID>.json
 
 ingress:
   - hostname: ocp.lfiq.app
@@ -113,7 +113,7 @@ Validate:
 cloudflared tunnel ingress validate
 ```
 
-Expect: `Validating rules from C:\Users\justin\.cloudflared\config.yml — OK`.
+Expect: `Validating rules from C:\Users\justinsato\.cloudflared\config.yml — OK`.
 
 ---
 
